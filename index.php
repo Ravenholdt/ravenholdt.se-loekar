@@ -61,18 +61,22 @@ $totalVotes = array_sum($_SESSION['votes']);
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="theme-color" content="#f4f2ec">
-	<title>Frame / Frame — Image Face-off</title>
+	<meta name="theme-color" content="#f0d8b3">
+	<title>Onion / Onion — Image Face-off</title>
 	<style>
 		:root {
 			color-scheme: light;
-			--paper: #f4f2ec;
-			--ink: #202522;
-			--muted: #68716a;
-			--line: #d8d9d1;
-			--green: #315d4b;
-			--coral: #d65d45;
-			--sun: #e7bd61;
+			--paper: #f7efe3;
+			--paper-deep: #ead9be;
+			--ink: #2f2018;
+			--muted: #715f4c;
+			--line: #d9bc96;
+			--gold: #dca93d;
+			--onion: #ca753f;
+			--onion-deep: #8a472e;
+			--onion-dark: #4b2c1e;
+			--moss: #7b8555;
+			--sun: #f3cf82;
 		}
 
 		* { box-sizing: border-box; }
@@ -80,9 +84,12 @@ $totalVotes = array_sum($_SESSION['votes']);
 		body {
 			margin: 0;
 			min-width: 320px;
-			background-color: var(--paper);
-			background-image: radial-gradient(#68716a18 0.65px, transparent 0.65px);
-			background-size: 8px 8px;
+			background:
+				radial-gradient(circle at 20% 20%, rgba(203, 133, 73, 0.18), transparent 22%),
+				radial-gradient(circle at 70% 18%, rgba(226, 176, 88, 0.24), transparent 24%),
+				radial-gradient(circle at 50% 50%, rgba(122, 87, 57, 0.08), transparent 40%),
+				linear-gradient(180deg, #f9f1e7 0%, var(--paper) 100%);
+			background-size: cover;
 			color: var(--ink);
 			font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
 		}
@@ -103,27 +110,44 @@ $totalVotes = array_sum($_SESSION['votes']);
 		.brand {
 			display: flex;
 			align-items: center;
-			gap: 10px;
+			gap: 12px;
 			font-size: 13px;
 			font-weight: 800;
+			letter-spacing: 0.08em;
 			text-transform: uppercase;
 		}
 
 		.brand-mark {
-			display: grid;
-			grid-template-columns: 9px 9px;
-			gap: 3px;
-			transform: rotate(-8deg);
+			display: block;
+			position: relative;
+			width: 22px;
+			height: 22px;
+			border-radius: 50%;
+			background: radial-gradient(circle at 35% 30%, #fff4dc 0 12%, #f0d391 12% 28%, #c87345 28% 52%, #7a432e 52% 100%);
+			border: 2px solid var(--onion-dark);
+			box-shadow: inset 0 0 0 3px rgba(255,255,255,0.35), 0 0 0 4px rgba(122, 67, 46, 0.08);
+			transform: rotate(-10deg);
 		}
 
-		.brand-mark i { width: 9px; height: 16px; background: var(--coral); }
-		.brand-mark i:last-child { background: var(--green); margin-top: 4px; }
+		.brand-mark::before,
+		.brand-mark::after {
+			content: "";
+			position: absolute;
+			inset: 4px;
+			border-radius: 50%;
+			border: 2px solid rgba(72, 31, 14, 0.42);
+		}
+
+		.brand-mark::after {
+			inset: 9px;
+			border-color: rgba(255,255,255,0.46);
+		}
 
 		.round-count {
 			color: var(--muted);
 			font-size: 12px;
 			font-weight: 700;
-			letter-spacing: 0;
+			letter-spacing: 0.06em;
 			text-transform: uppercase;
 		}
 
@@ -139,9 +163,10 @@ $totalVotes = array_sum($_SESSION['votes']);
 
 		.eyebrow {
 			margin: 0 0 12px;
-			color: var(--coral);
+			color: var(--onion);
 			font-size: 11px;
 			font-weight: 800;
+			letter-spacing: 0.12em;
 			text-transform: uppercase;
 		}
 
@@ -152,10 +177,11 @@ $totalVotes = array_sum($_SESSION['votes']);
 			font-size: clamp(36px, 5vw, 60px);
 			font-weight: 500;
 			line-height: 1.02;
+			letter-spacing: -0.04em;
 		}
 
 		.prompt {
-			max-width: 230px;
+			max-width: 250px;
 			margin: 0 0 4px;
 			color: var(--muted);
 			font-size: 14px;
@@ -176,11 +202,12 @@ $totalVotes = array_sum($_SESSION['votes']);
 			overflow: hidden;
 			padding: 0;
 			border: 1px solid var(--line);
-			border-radius: 4px;
-			background: #e5e1d8;
+			border-radius: 12px;
+			background: linear-gradient(180deg, #f2e4d2 0%, #e6d2b0 100%);
 			color: inherit;
 			cursor: pointer;
 			text-align: left;
+			box-shadow: 0 16px 28px rgba(88, 63, 43, 0.08);
 		}
 
 		.image-choice img {
@@ -192,7 +219,7 @@ $totalVotes = array_sum($_SESSION['votes']);
 		}
 
 		.image-choice:hover img { transform: scale(1.025); }
-		.image-choice:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
+		.image-choice:focus-visible { outline: 3px solid var(--onion); outline-offset: 3px; }
 
 		.choice-label {
 			position: absolute;
@@ -203,7 +230,8 @@ $totalVotes = array_sum($_SESSION['votes']);
 			aspect-ratio: 1;
 			place-items: center;
 			border-radius: 50%;
-			background: var(--paper);
+			background: rgba(255, 249, 239, 0.92);
+			border: 1px solid rgba(82, 52, 35, 0.15);
 			font-family: Georgia, "Times New Roman", serif;
 			font-size: 17px;
 		}
@@ -215,7 +243,7 @@ $totalVotes = array_sum($_SESSION['votes']);
 			min-height: 52px;
 			padding: 0 16px;
 			border-top: 1px solid var(--line);
-			background: #fffdf8;
+			background: rgba(255, 252, 247, 0.85);
 			font-size: 12px;
 		}
 
@@ -231,12 +259,13 @@ $totalVotes = array_sum($_SESSION['votes']);
 			width: 46px;
 			aspect-ratio: 1;
 			place-items: center;
-			border: 1px solid var(--ink);
+			border: 1px solid var(--onion-dark);
 			border-radius: 50%;
-			background: var(--sun);
+			background: radial-gradient(circle at 35% 30%, #f8e3a4 0%, #efc35d 30%, #d89b36 100%);
 			font-family: Georgia, "Times New Roman", serif;
 			font-size: 12px;
 			transform: translate(-50%, -50%);
+			box-shadow: 0 8px 16px rgba(99, 64, 32, 0.15);
 		}
 
 		.feedback {
@@ -246,12 +275,12 @@ $totalVotes = array_sum($_SESSION['votes']);
 			gap: 16px;
 			margin-top: 24px;
 			padding: 16px 18px;
-			border-left: 3px solid var(--green);
-			background: #e5ebe3;
+			border-left: 3px solid var(--moss);
+			background: rgba(230, 236, 215, 0.85);
 			font-size: 14px;
 		}
 
-		.feedback strong { color: var(--green); }
+		.feedback strong { color: var(--moss); }
 
 		.empty-state {
 			margin-top: 20px;
@@ -284,7 +313,7 @@ $totalVotes = array_sum($_SESSION['votes']);
 		}
 
 		.scoreboard strong { color: var(--ink); }
-		.scoreboard .dot { color: var(--coral); padding: 0 7px; }
+		.scoreboard .dot { color: var(--onion); padding: 0 7px; }
 
 		@media (max-width: 680px) {
 			.page-shell { width: min(100% - 28px, 520px); }
@@ -307,17 +336,17 @@ $totalVotes = array_sum($_SESSION['votes']);
 <body>
 	<div class="page-shell">
 		<header class="topbar">
-			<div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i></span> Frame / Frame</div>
-			<div class="round-count">The image face-off</div>
+			<div class="brand"><span class="brand-mark" aria-hidden="true"></span> Onion / Onion</div>
+			<div class="round-count">The onion face-off</div>
 		</header>
 
 		<main>
 			<section class="intro" aria-labelledby="page-title">
 				<div>
 					<p class="eyebrow">A small test of taste</p>
-					<h1 id="page-title">Which image<br>makes the cut?</h1>
+					<h1 id="page-title">Which layer<br>gets the crown?</h1>
 				</div>
-				<p class="prompt">Two images. One pick. Choose the one you would keep.</p>
+				<p class="prompt">Two bulbs. One pick. Choose the image that feels most at home in the root cellar.</p>
 			</section>
 
 			<?php if (count($pair) === 2): ?>
@@ -327,7 +356,7 @@ $totalVotes = array_sum($_SESSION['votes']);
 							<img src="<?= escapeHtml(imageUrl($filename)) ?>" alt="Image <?= $index + 1 ?>">
 							<span class="choice-label" aria-hidden="true"><?= $index === 0 ? 'A' : 'B' ?></span>
 							<span class="image-caption">
-								<strong>Frame <?= $index === 0 ? '01' : '02' ?></strong>
+								<strong>Bulb <?= $index === 0 ? '01' : '02' ?></strong>
 								<span><?= escapeHtml(pathinfo($filename, PATHINFO_EXTENSION)) ?></span>
 							</span>
 						</button>
@@ -343,14 +372,14 @@ $totalVotes = array_sum($_SESSION['votes']);
 				<?php endif; ?>
 			<?php else: ?>
 				<section class="empty-state" aria-live="polite">
-					<h2><?= count($images) === 0 ? 'No images found yet.' : 'One more image needed.' ?></h2>
+					<h2><?= count($images) === 0 ? 'No alliums found yet.' : 'One more bulb needed.' ?></h2>
 					<p>Add at least two JPG, PNG, GIF, WebP, or AVIF files to the <code>images/</code> folder, then refresh this page.</p>
 				</section>
 			<?php endif; ?>
 
 			<footer class="scoreboard">
 				<span><strong><?= (int) $totalVotes ?></strong> vote<?= $totalVotes === 1 ? '' : 's' ?> this session</span>
-				<span>Images are drawn from <code>images/</code><span class="dot">/</span>Session totals reset when the browser session ends</span>
+				<span>Bulbs are drawn from <code>images/</code><span class="dot">/</span>Session totals reset when the cellar closes</span>
 			</footer>
 		</main>
 	</div>
