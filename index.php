@@ -62,7 +62,7 @@ $totalVotes = array_sum($_SESSION['votes']);
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="theme-color" content="#f0d8b3">
-	<title>De sjyssta lökarna — Bildduell</title>
+	<title>Sjyssta lökar — Bildduell</title>
 	<style>
 		:root {
 			color-scheme: light;
@@ -336,7 +336,7 @@ $totalVotes = array_sum($_SESSION['votes']);
 <body>
 	<div class="page-shell">
 		<header class="topbar">
-			<div class="brand"><span class="brand-mark" aria-hidden="true"></span> De sjyssta lökarna</div>
+			<div class="brand"><span class="brand-mark" aria-hidden="true"></span> Sjyssta lökar</div>
 			<div class="round-count">Bästa löken</div>
 		</header>
 
