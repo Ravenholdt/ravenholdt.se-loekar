@@ -1,9 +1,83 @@
 <?php
 session_start();
 
+$voteStorageRoot = is_dir('/var/tmp') && is_writable('/var/tmp') ? '/var/tmp' : sys_get_temp_dir();
+$voteStorageDirectory = $voteStorageRoot . '/sjyssta-lokar-' . hash('sha256', __DIR__);
 $imageDirectory = __DIR__ . '/images';
 $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'];
 $images = [];
+
+function loadVoteCounts(string $storageDirectory, ?string $vote = null): array
+{
+	if (!is_dir($storageDirectory) && !@mkdir($storageDirectory, 0700, true) && !is_dir($storageDirectory)) {
+		throw new RuntimeException('Could not create the vote storage directory.');
+	}
+
+	$lockPath = $storageDirectory . '/votes.lock';
+	$lock = @fopen($lockPath, 'c');
+	if ($lock === false) {
+		throw new RuntimeException('Could not open the vote storage lock.');
+	}
+
+	if (!@flock($lock, LOCK_EX)) {
+		fclose($lock);
+		throw new RuntimeException('Could not lock the vote storage.');
+	}
+
+	try {
+		$voteFile = $storageDirectory . '/votes.json';
+		$voteFileExists = is_file($voteFile);
+		$contents = $voteFileExists ? @file_get_contents($voteFile) : '';
+		if ($contents === false) {
+			throw new RuntimeException('Could not read the vote storage.');
+		}
+		if ($voteFileExists && $contents === '') {
+			throw new RuntimeException('Vote storage is empty.');
+		}
+
+		$counts = $voteFileExists ? json_decode($contents, true, 512, JSON_THROW_ON_ERROR) : [];
+		if (!is_array($counts)) {
+			throw new RuntimeException('Vote storage has an invalid format.');
+		}
+
+		foreach ($counts as $filename => $count) {
+			if (!is_string($filename) || !is_int($count) || $count < 0) {
+				throw new RuntimeException('Vote storage contains invalid vote counts.');
+			}
+		}
+
+		if ($vote !== null) {
+			if (($counts[$vote] ?? 0) === PHP_INT_MAX) {
+				throw new RuntimeException('Vote count limit reached.');
+			}
+			$counts[$vote] = ($counts[$vote] ?? 0) + 1;
+			$tempFile = @tempnam($storageDirectory, '.votes-');
+			if ($tempFile === false) {
+				throw new RuntimeException('Could not create a temporary vote file.');
+			}
+
+			try {
+				$json = json_encode($counts, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL;
+				if (@file_put_contents($tempFile, $json) !== strlen($json)) {
+					throw new RuntimeException('Could not write vote counts.');
+				}
+				if (!@chmod($tempFile, 0600) || !@rename($tempFile, $voteFile)) {
+					throw new RuntimeException('Could not save vote counts.');
+				}
+				$tempFile = null;
+			} finally {
+				if ($tempFile !== null && is_file($tempFile)) {
+					@unlink($tempFile);
+				}
+			}
+		}
+
+		return $counts;
+	} finally {
+		flock($lock, LOCK_UN);
+		fclose($lock);
+	}
+}
 
 if (is_dir($imageDirectory)) {
 	foreach ($allowedExtensions as $extension) {
@@ -18,18 +92,21 @@ if (is_dir($imageDirectory)) {
 sort($images, SORT_NATURAL | SORT_FLAG_CASE);
 $feedback = null;
 
-if (!isset($_SESSION['votes'])) {
-	$_SESSION['votes'] = [];
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['current_pair'])) {
 	$pair = $_SESSION['current_pair'];
 	$choice = $_POST['choice'] ?? '';
 
-	if (in_array($choice, $pair, true) && in_array($choice, $images, true)) {
-		$_SESSION['votes'][$choice] = ($_SESSION['votes'][$choice] ?? 0) + 1;
+	if (is_string($choice) && in_array($choice, $pair, true) && in_array($choice, $images, true)) {
 		$feedback = $choice;
 	}
+}
+
+try {
+	$voteCounts = loadVoteCounts($voteStorageDirectory, $feedback);
+} catch (JsonException | RuntimeException $exception) {
+	error_log('Vote storage error in ' . $voteStorageDirectory . ': ' . $exception->getMessage());
+	http_response_code(500);
+	exit('Votes could not be saved right now. Please try again later.');
 }
 
 if (count($images) >= 2) {
@@ -54,10 +131,10 @@ function imageUrl(string $filename): string
 	return 'images/' . rawurlencode($filename);
 }
 
-$totalVotes = array_sum($_SESSION['votes']);
+$totalVotes = array_sum($voteCounts);
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="sv">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -99,7 +176,7 @@ $totalVotes = array_sum($_SESSION['votes']);
 				<?php if ($feedback !== null): ?>
 					<div class="feedback" role="status">
 						<span><strong>Röst registrerad.</strong> Ditt val är klart.</span>
-						<span><?= (int) ($_SESSION['votes'][$feedback] ?? 0) ?> röst<?= ($_SESSION['votes'][$feedback] ?? 0) === 1 ? '' : 'er' ?> för den här bilden</span>
+						<span><?= (int) ($voteCounts[$feedback] ?? 0) ?> röst<?= ($voteCounts[$feedback] ?? 0) === 1 ? '' : 'er' ?> totalt för den här bilden</span>
 					</div>
 				<?php endif; ?>
 			<?php else: ?>
@@ -110,8 +187,8 @@ $totalVotes = array_sum($_SESSION['votes']);
 			<?php endif; ?>
 
 			<footer class="scoreboard">
-				<span><strong><?= (int) $totalVotes ?></strong> röst<?= $totalVotes === 1 ? '' : 'er' ?> under denna session</span>
-				<span>Lökbilder hämtas från <code>images/</code><span class="dot">/</span>Sessionens totals nollställs när källaren stängs</span>
+				<span><strong><?= (int) $totalVotes ?></strong> röst<?= $totalVotes === 1 ? '' : 'er' ?> totalt från alla besökare</span>
+				<span>Röster sparas lokalt på servern<span class="dot">/</span>Lökbilder hämtas från <code>images/</code></span>
 			</footer>
 		</main>
 	</div>
