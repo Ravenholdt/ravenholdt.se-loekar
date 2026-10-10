@@ -62,7 +62,7 @@ $totalVotes = array_sum($_SESSION['votes']);
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="theme-color" content="#f0d8b3">
-	<title>Lök / Lök — Bildduell</title>
+	<title>De sjyssta lökarna — Bildduell</title>
 	<style>
 		:root {
 			color-scheme: light;
@@ -336,17 +336,17 @@ $totalVotes = array_sum($_SESSION['votes']);
 <body>
 	<div class="page-shell">
 		<header class="topbar">
-			<div class="brand"><span class="brand-mark" aria-hidden="true"></span> Lök / Lök</div>
-			<div class="round-count">Lökduellen</div>
+			<div class="brand"><span class="brand-mark" aria-hidden="true"></span> De sjyssta lökarna</div>
+			<div class="round-count">Bästa löken</div>
 		</header>
 
 		<main>
 			<section class="intro" aria-labelledby="page-title">
 				<div>
 					<p class="eyebrow">Ett litet smakprov</p>
-					<h1 id="page-title">Vilket lager<br>får kronan?</h1>
+					<h1 id="page-title">Vilken lök<br>skär mest?</h1>
 				</div>
-				<p class="prompt">Två lökar. Ett val. Välj bilden som känns mest hemma i källaren.</p>
+				<p class="prompt">Två fina lökar. Ett val. Välj den bild som känns mest sjysst.</p>
 			</section>
 
 			<?php if (count($pair) === 2): ?>
