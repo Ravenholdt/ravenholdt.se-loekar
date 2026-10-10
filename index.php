@@ -3,7 +3,7 @@ session_start();
 
 require_once __DIR__ . '/votes.php';
 
-$voteStorageDirectory = voteStorageDirectory();
+$voteFile = voteStoragePath();
 $imageDirectory = __DIR__ . '/images';
 $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'];
 $images = [];
@@ -31,9 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['current_pair'])) {
 }
 
 try {
-	$voteCounts = loadVoteCounts($voteStorageDirectory, $feedback);
+	$voteCounts = loadVoteCounts($voteFile, $feedback);
 } catch (JsonException | RuntimeException $exception) {
-	error_log('Vote storage error in ' . $voteStorageDirectory . ': ' . $exception->getMessage());
+	error_log('Vote storage error in ' . $voteFile . ': ' . $exception->getMessage());
 	http_response_code(500);
 	exit('Votes could not be saved right now. Please try again later.');
 }

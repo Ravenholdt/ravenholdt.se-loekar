@@ -18,9 +18,10 @@ if (is_dir($imageDirectory)) {
 sort($images, SORT_NATURAL | SORT_FLAG_CASE);
 
 try {
-	$voteCounts = loadVoteCounts(voteStorageDirectory());
+	$voteFile = voteStoragePath();
+	$voteCounts = loadVoteCounts($voteFile);
 } catch (JsonException | RuntimeException $exception) {
-	error_log('Vote storage error in ' . voteStorageDirectory() . ': ' . $exception->getMessage());
+	error_log('Vote storage error in ' . $voteFile . ': ' . $exception->getMessage());
 	http_response_code(500);
 	exit('The high scores could not be loaded right now. Please try again later.');
 }
