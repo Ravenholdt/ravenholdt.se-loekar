@@ -62,7 +62,7 @@ $totalVotes = array_sum($_SESSION['votes']);
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="theme-color" content="#f0d8b3">
-	<title>Onion / Onion — Image Face-off</title>
+	<title>Lök / Lök — Bildduell</title>
 	<style>
 		:root {
 			color-scheme: light;
@@ -336,27 +336,27 @@ $totalVotes = array_sum($_SESSION['votes']);
 <body>
 	<div class="page-shell">
 		<header class="topbar">
-			<div class="brand"><span class="brand-mark" aria-hidden="true"></span> Onion / Onion</div>
-			<div class="round-count">The onion face-off</div>
+			<div class="brand"><span class="brand-mark" aria-hidden="true"></span> Lök / Lök</div>
+			<div class="round-count">Lökduellen</div>
 		</header>
 
 		<main>
 			<section class="intro" aria-labelledby="page-title">
 				<div>
-					<p class="eyebrow">A small test of taste</p>
-					<h1 id="page-title">Which layer<br>gets the crown?</h1>
+					<p class="eyebrow">Ett litet smakprov</p>
+					<h1 id="page-title">Vilket lager<br>får kronan?</h1>
 				</div>
-				<p class="prompt">Two bulbs. One pick. Choose the image that feels most at home in the root cellar.</p>
+				<p class="prompt">Två lökar. Ett val. Välj bilden som känns mest hemma i källaren.</p>
 			</section>
 
 			<?php if (count($pair) === 2): ?>
-				<form method="post" class="comparison" aria-label="Choose the better image">
+				<form method="post" class="comparison" aria-label="Välj den bättre bilden">
 					<?php foreach ($pair as $index => $filename): ?>
-						<button class="image-choice" type="submit" name="choice" value="<?= escapeHtml($filename) ?>" aria-label="Vote for image <?= $index + 1 ?>">
-							<img src="<?= escapeHtml(imageUrl($filename)) ?>" alt="Image <?= $index + 1 ?>">
+						<button class="image-choice" type="submit" name="choice" value="<?= escapeHtml($filename) ?>" aria-label="Rösta på bild <?= $index + 1 ?>">
+							<img src="<?= escapeHtml(imageUrl($filename)) ?>" alt="Bild <?= $index + 1 ?>">
 							<span class="choice-label" aria-hidden="true"><?= $index === 0 ? 'A' : 'B' ?></span>
 							<span class="image-caption">
-								<strong>Bulb <?= $index === 0 ? '01' : '02' ?></strong>
+								<strong>Lök <?= $index === 0 ? '01' : '02' ?></strong>
 								<span><?= escapeHtml(pathinfo($filename, PATHINFO_EXTENSION)) ?></span>
 							</span>
 						</button>
@@ -366,20 +366,20 @@ $totalVotes = array_sum($_SESSION['votes']);
 
 				<?php if ($feedback !== null): ?>
 					<div class="feedback" role="status">
-						<span><strong>Vote counted.</strong> Your pick is in.</span>
-						<span><?= (int) ($_SESSION['votes'][$feedback] ?? 0) ?> vote<?= ($_SESSION['votes'][$feedback] ?? 0) === 1 ? '' : 's' ?> for this image</span>
+						<span><strong>Röst registrerad.</strong> Ditt val är klart.</span>
+						<span><?= (int) ($_SESSION['votes'][$feedback] ?? 0) ?> röst<?= ($_SESSION['votes'][$feedback] ?? 0) === 1 ? '' : 'er' ?> för den här bilden</span>
 					</div>
 				<?php endif; ?>
 			<?php else: ?>
 				<section class="empty-state" aria-live="polite">
-					<h2><?= count($images) === 0 ? 'No alliums found yet.' : 'One more bulb needed.' ?></h2>
-					<p>Add at least two JPG, PNG, GIF, WebP, or AVIF files to the <code>images/</code> folder, then refresh this page.</p>
+					<h2><?= count($images) === 0 ? 'Inga allium hittades ännu.' : 'En lök till behövs.' ?></h2>
+					<p>Lägg till minst två JPG-, PNG-, GIF-, WebP- eller AVIF-filer i <code>images/</code>-mappen och uppdatera sidan.</p>
 				</section>
 			<?php endif; ?>
 
 			<footer class="scoreboard">
-				<span><strong><?= (int) $totalVotes ?></strong> vote<?= $totalVotes === 1 ? '' : 's' ?> this session</span>
-				<span>Bulbs are drawn from <code>images/</code><span class="dot">/</span>Session totals reset when the cellar closes</span>
+				<span><strong><?= (int) $totalVotes ?></strong> röst<?= $totalVotes === 1 ? '' : 'er' ?> under denna session</span>
+				<span>Lökbilder hämtas från <code>images/</code><span class="dot">/</span>Sessionens totals nollställs när källaren stängs</span>
 			</footer>
 		</main>
 	</div>
