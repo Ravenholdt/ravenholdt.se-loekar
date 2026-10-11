@@ -244,6 +244,13 @@ h1 {
 
 .feedback strong { color: var(--moss); }
 
+.feedback--warning {
+	border-left-color: var(--onion);
+	background: rgba(243, 207, 130, 0.32);
+}
+
+.feedback--warning strong { color: var(--onion-deep); }
+
 .empty-state {
 	margin-top: 20px;
 	padding: 30px;

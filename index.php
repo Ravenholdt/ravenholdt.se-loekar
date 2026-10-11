@@ -5,28 +5,25 @@ require_once __DIR__ . '/votes.php';
 
 $voteFile = voteStoragePath();
 $imageDirectory = __DIR__ . '/images';
-$allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'];
-$images = [];
-
-if (is_dir($imageDirectory)) {
-	foreach ($allowedExtensions as $extension) {
-		foreach (glob($imageDirectory . '/*.' . $extension) ?: [] as $imagePath) {
-			if (is_file($imagePath)) {
-				$images[] = basename($imagePath);
-			}
-		}
-	}
-}
-
-sort($images, SORT_NATURAL | SORT_FLAG_CASE);
+$images = getImageFiles($imageDirectory);
 $feedback = null;
+$rateLimited = false;
+$cooldownRemaining = 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['current_pair'])) {
 	$pair = $_SESSION['current_pair'];
 	$choice = $_POST['choice'] ?? '';
 
 	if (is_string($choice) && in_array($choice, $pair, true) && in_array($choice, $images, true)) {
-		$feedback = $choice;
+		$lastVoteAt = isset($_SESSION['last_vote_at']) && is_numeric($_SESSION['last_vote_at'])
+			? (float) $_SESSION['last_vote_at']
+			: null;
+		$cooldownRemaining = voteRateLimitRemaining($lastVoteAt, microtime(true));
+		if ($cooldownRemaining > 0) {
+			$rateLimited = true;
+		} else {
+			$feedback = $choice;
+		}
 	}
 }
 
@@ -38,9 +35,13 @@ try {
 	exit('Votes could not be saved right now. Please try again later.');
 }
 
+if ($feedback !== null) {
+	$_SESSION['last_vote_at'] = microtime(true);
+}
+
 if (count($images) >= 2) {
 	$pair = $_SESSION['current_pair'] ?? [];
-	if ($_SERVER['REQUEST_METHOD'] === 'POST' || count($pair) !== 2 || !in_array($pair[0], $images, true) || !in_array($pair[1], $images, true)) {
+	if (($_SERVER['REQUEST_METHOD'] === 'POST' && !$rateLimited) || count($pair) !== 2 || !in_array($pair[0], $images, true) || !in_array($pair[1], $images, true)) {
 		$pair = array_rand(array_flip($images), 2);
 		$pair = array_values($pair);
 	}
@@ -50,17 +51,8 @@ if (count($images) >= 2) {
 	unset($_SESSION['current_pair']);
 }
 
-function escapeHtml(string $value): string
-{
-	return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-}
-
-function imageUrl(string $filename): string
-{
-	return 'images/' . rawurlencode($filename);
-}
-
-$totalVotes = array_sum($voteCounts);
+$totalVotes = totalVotesForImages($voteCounts, $images);
+session_write_close();
 ?>
 <!doctype html>
 <html lang="sv">
@@ -109,6 +101,10 @@ $totalVotes = array_sum($voteCounts);
 					<div class="feedback" role="status">
 						<span><strong>Röst registrerad.</strong> Ditt val är klart.</span>
 						<span><?= (int) ($voteCounts[$feedback] ?? 0) ?> röst<?= ($voteCounts[$feedback] ?? 0) === 1 ? '' : 'er' ?> totalt för den här bilden</span>
+					</div>
+				<?php elseif ($rateLimited): ?>
+					<div class="feedback feedback--warning" role="status">
+						<span><strong>Vänta lite.</strong> Du kan rösta igen om <?= $cooldownRemaining ?> sekund<?= $cooldownRemaining === 1 ? '' : 'er' ?>.</span>
 					</div>
 				<?php endif; ?>
 			<?php else: ?>

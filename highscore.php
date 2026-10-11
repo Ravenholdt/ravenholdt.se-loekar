@@ -1,21 +1,7 @@
 <?php
 require_once __DIR__ . '/votes.php';
 
-$imageDirectory = __DIR__ . '/images';
-$allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'];
-$images = [];
-
-if (is_dir($imageDirectory)) {
-	foreach ($allowedExtensions as $extension) {
-		foreach (glob($imageDirectory . '/*.' . $extension) ?: [] as $imagePath) {
-			if (is_file($imagePath)) {
-				$images[] = basename($imagePath);
-			}
-		}
-	}
-}
-
-sort($images, SORT_NATURAL | SORT_FLAG_CASE);
+$images = getImageFiles(__DIR__ . '/images');
 
 try {
 	$voteFile = voteStoragePath();
@@ -31,17 +17,7 @@ usort($images, static function (string $left, string $right) use ($voteCounts): 
 	return $voteDifference !== 0 ? $voteDifference : strnatcasecmp($left, $right);
 });
 
-function escapeHtml(string $value): string
-{
-	return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-}
-
-function imageUrl(string $filename): string
-{
-	return 'images/' . rawurlencode($filename);
-}
-
-$totalVotes = array_sum($voteCounts);
+$totalVotes = totalVotesForImages($voteCounts, $images);
 ?>
 <!doctype html>
 <html lang="sv">
@@ -78,7 +54,7 @@ $totalVotes = array_sum($voteCounts);
 						<?php $votes = (int) ($voteCounts[$filename] ?? 0); ?>
 						<li class="leaderboard-row">
 							<span class="leaderboard-rank" aria-label="Plats <?= $index + 1 ?>"><?= $index + 1 ?></span>
-							<img class="leaderboard-image" src="<?= escapeHtml(imageUrl($filename)) ?>" alt="" loading="lazy">
+							<img class="leaderboard-image" src="<?= escapeHtml(thumbnailUrl($filename)) ?>" alt="" loading="lazy">
 							<span class="leaderboard-name"><?= escapeHtml($filename) ?></span>
 							<span class="leaderboard-votes"><strong><?= $votes ?></strong> röst<?= $votes === 1 ? '' : 'er' ?></span>
 						</li>
